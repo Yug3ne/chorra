@@ -216,58 +216,58 @@ export const Sidebar = () => {
                   </div>
                 ) : (
                   // Normal mode
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => setActiveSheet(sheet.id)}
-                        className={`w-full text-left px-3 py-2 rounded-md transition-all flex items-center justify-between group ${
-                          activeSheetId === sheet.id
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                        }`}
-                      >
+                  <div
+                    onClick={() => setActiveSheet(sheet.id)}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-all flex items-center justify-between group cursor-pointer ${
+                      activeSheetId === sheet.id
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                        : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                    }`}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{sheet.title}</p>
                           <p className="text-xs text-sidebar-foreground/60">
                             {formatLastUpdated(sheet.updatedAt)}
                           </p>
                         </div>
-                        <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={(e) => handleRenameStart(e, sheet.id)}
-                                className="text-sidebar-foreground/40 hover:text-primary p-1 rounded hover:bg-primary/10 transition-colors"
-                                title="Rename sheet"
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="text-xs">
-                              Rename sheet (or double-click)
-                            </TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={(e) => handleDeleteSheet(e, sheet.id)}
-                                className="text-sidebar-foreground/40 hover:text-destructive p-1 rounded hover:bg-destructive/10 transition-colors"
-                                title="Delete sheet"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="text-xs">
-                              Delete sheet
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      {sheet.title}
-                    </TooltipContent>
-                  </Tooltip>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        {sheet.title}
+                      </TooltipContent>
+                    </Tooltip>
+                    <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={(e) => handleRenameStart(e, sheet.id)}
+                            className="text-sidebar-foreground/40 hover:text-primary p-1 rounded hover:bg-primary/10 transition-colors"
+                            title="Rename sheet"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="text-xs">
+                          Rename sheet (or double-click)
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={(e) => handleDeleteSheet(e, sheet.id)}
+                            className="text-sidebar-foreground/40 hover:text-destructive p-1 rounded hover:bg-destructive/10 transition-colors"
+                            title="Delete sheet"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="text-xs">
+                          Delete sheet
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
                 )}
               </div>
             ))}
