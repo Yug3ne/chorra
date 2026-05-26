@@ -3,6 +3,7 @@ import { api } from "../../../convex/_generated/api";
 import { useEffect, useRef } from "react";
 import { useWhiteboardStore } from "../../store/whiteboard";
 import { SyncEngine } from "../syncEngine";
+import { sanitizeForConvex } from "../sanitizeForConvex";
 
 export const useSheetSync = (sheetId: string) => {
   const updateSheetMutation = useMutation(api.sheets.updateSheet);
@@ -16,8 +17,8 @@ export const useSheetSync = (sheetId: string) => {
       try {
         await updateSheetMutation({
           sheetId: sheetId as any,
-          elements: data.elements,
-          appState: data.appState,
+          elements: sanitizeForConvex(data.elements) as any,
+          appState: sanitizeForConvex(data.appState),
         });
       } catch (error) {
         console.error("Failed to save sheet:", error);
