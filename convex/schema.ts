@@ -5,11 +5,7 @@ export default defineSchema({
   sheets: defineTable({
     title: v.string(),
     elements: v.any(), // Excalidraw elements array
-    appState: v.object({
-      zoom: v.object({ value: v.number() }),
-      scrollX: v.number(),
-      scrollY: v.number(),
-    }),
+    appState: v.any(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
