@@ -123,12 +123,8 @@ export const createSheet = mutation({
 export const updateSheet = mutation({
   args: {
     sheetId: v.id("sheets"),
-    elements: v.any(), // Excalidraw elements array
-    appState: v.object({
-      zoom: v.object({ value: v.number() }),
-      scrollX: v.number(),
-      scrollY: v.number(),
-    }),
+    elements: v.any(),
+    appState: v.any(),
   },
   handler: async (ctx, args) => {
     const sheet = await ctx.db.get("sheets", args.sheetId);
