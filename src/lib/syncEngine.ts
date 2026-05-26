@@ -1,33 +1,36 @@
-type SaveFunction = (data: { elements: any[]; appState: any }) => Promise<void>;
+export type SaveData = { elements: unknown[]; appState: unknown };
+
+type SaveFunction = (data: SaveData) => Promise<void>;
+
+export interface SyncEngineOptions {
+  debounceMs?: number;
+}
 
 export class SyncEngine {
   debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  pendingSaveData: {
-    elements: any[];
-    appState: any;
-  } | null = null;
+  pendingSaveData: SaveData | null = null;
   onSave: SaveFunction;
+  debounceMs: number;
 
-  constructor(onSave: SaveFunction) {
+  constructor(onSave: SaveFunction, options?: SyncEngineOptions) {
     this.onSave = onSave;
+    this.debounceMs = options?.debounceMs ?? 1000;
   }
 
-  onCanvasChange(elements: any[], appState: any) {
+  onCanvasChange(elements: unknown[], appState: unknown) {
     this.pendingSaveData = { elements, appState };
 
-    // Cancel previous timer
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
 
-    // Set new timer: 1000ms delay
     this.debounceTimer = setTimeout(() => {
       if (this.pendingSaveData) {
         this.onSave(this.pendingSaveData);
         this.pendingSaveData = null;
       }
       this.debounceTimer = null;
-    }, 1000);
+    }, this.debounceMs);
   }
 
   cancel() {
