@@ -44,6 +44,7 @@ export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
           onChange={(elements: any, appState: any) => {
             onElementsChange(elements, appState);
           }}
+          theme="dark"
         />
       </div>
       <SaveIndicator />
