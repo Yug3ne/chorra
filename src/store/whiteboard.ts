@@ -14,6 +14,9 @@ export interface WhiteboardStore {
   isLoading: boolean;
   isSaving: boolean;
   showSheetSwitcher: boolean;
+  sidebarOpen: boolean;
+  sidebarWidth: number;
+  editingSheetId: string | null;
 
   // Actions
   setActiveSheet: (id: string) => void;
@@ -25,6 +28,9 @@ export interface WhiteboardStore {
   setLoading: (loading: boolean) => void;
   setSaving: (saving: boolean) => void;
   setShowSheetSwitcher: (show: boolean) => void;
+  setSidebarOpen: (open: boolean) => void;
+  setSidebarWidth: (width: number) => void;
+  setEditingSheetId: (id: string | null) => void;
 }
 
 export const useWhiteboardStore = create<WhiteboardStore>((set) => ({
@@ -34,6 +40,9 @@ export const useWhiteboardStore = create<WhiteboardStore>((set) => ({
   isLoading: false,
   isSaving: false,
   showSheetSwitcher: false,
+  sidebarOpen: true,
+  sidebarWidth: 256, // w-64 = 256px
+  editingSheetId: null,
 
   // Actions
   setActiveSheet: (id) => set({ activeSheetId: id }),
@@ -72,4 +81,10 @@ export const useWhiteboardStore = create<WhiteboardStore>((set) => ({
   setSaving: (saving) => set({ isSaving: saving }),
 
   setShowSheetSwitcher: (show) => set({ showSheetSwitcher: show }),
+
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
+
+  setSidebarWidth: (width) => set({ sidebarWidth: width }),
+
+  setEditingSheetId: (id) => set({ editingSheetId: id }),
 }));

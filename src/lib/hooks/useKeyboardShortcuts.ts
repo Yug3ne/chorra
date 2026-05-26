@@ -5,11 +5,27 @@ import { useWhiteboardStore } from "../../store/whiteboard";
 
 export const useKeyboardShortcuts = () => {
   const createSheetMutation = useMutation(api.sheets.createSheet);
-  const { addSheet, setActiveSheet, setShowSheetSwitcher, showSheetSwitcher } =
-    useWhiteboardStore();
+  const { 
+    addSheet, 
+    setActiveSheet, 
+    setShowSheetSwitcher, 
+    showSheetSwitcher,
+    setSidebarOpen,
+    sidebarOpen
+  } = useWhiteboardStore();
 
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
+      // Don't interfere if user is typing in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        // Only handle Escape for closing switcher while in input
+        if (e.key === "Escape" && showSheetSwitcher) {
+          e.preventDefault();
+          setShowSheetSwitcher(false);
+        }
+        return;
+      }
+
       // Cmd+N or Ctrl+N: Create new sheet
       if ((e.metaKey || e.ctrlKey) && e.key === "n") {
         e.preventDefault();
@@ -33,13 +49,28 @@ export const useKeyboardShortcuts = () => {
         setShowSheetSwitcher(!showSheetSwitcher);
       }
 
-      // Escape: Close sheet switcher
+      // Escape: Close sheet switcher (only if open)
       if (e.key === "Escape" && showSheetSwitcher) {
+        e.preventDefault();
         setShowSheetSwitcher(false);
+      }
+
+      // Cmd/Ctrl+B: Toggle sidebar
+      if ((e.metaKey || e.ctrlKey) && e.key === "b") {
+        e.preventDefault();
+        setSidebarOpen(!sidebarOpen);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [createSheetMutation, addSheet, setActiveSheet, setShowSheetSwitcher, showSheetSwitcher]);
+  }, [
+    createSheetMutation,
+    addSheet,
+    setActiveSheet,
+    setShowSheetSwitcher,
+    showSheetSwitcher,
+    setSidebarOpen,
+    sidebarOpen,
+  ]);
 };

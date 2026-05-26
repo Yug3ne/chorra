@@ -4,11 +4,15 @@ import { useWhiteboardStore } from "../../store/whiteboard";
 
 export const MainLayout = () => {
   const activeSheetId = useWhiteboardStore((state) => state.activeSheetId);
+  const sidebarOpen = useWhiteboardStore((state) => state.sidebarOpen);
+  const sidebarWidth = useWhiteboardStore((state) => state.sidebarWidth);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar */}
-      <Sidebar />
+    <div className="flex h-screen overflow-hidden bg-background relative">
+      {/* Sidebar with dynamic width */}
+      <div style={{ width: sidebarOpen ? `${sidebarWidth}px` : "48px" }}>
+        <Sidebar />
+      </div>
 
       {/* Canvas Area */}
       <div className="flex-1 flex flex-col">

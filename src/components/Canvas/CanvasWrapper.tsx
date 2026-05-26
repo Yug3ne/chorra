@@ -4,6 +4,7 @@ import { Excalidraw } from "@excalidraw/excalidraw";
 import { useSheetSync } from "../../lib/hooks/useSheetSync";
 import { SaveIndicator } from "../SaveIndicator";
 import { Loader2 } from "lucide-react";
+import { useRef, useEffect } from "react";
 
 interface CanvasWrapperProps {
   sheetId: string;
@@ -11,9 +12,20 @@ interface CanvasWrapperProps {
 
 export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
   const sheetData = useQuery(api.sheets.getSheet, { sheetId: sheetId as any });
+  const excalidrawContainerRef = useRef<HTMLDivElement>(null);
 
   // Use the sync hook to handle debounced saves
   const { onElementsChange } = useSheetSync(sheetId);
+
+  // Focus on Excalidraw when container mounts or sheetId changes
+  useEffect(() => {
+    if (excalidrawContainerRef.current) {
+      const excalidrawCanvas = excalidrawContainerRef.current.querySelector("canvas");
+      if (excalidrawCanvas) {
+        excalidrawCanvas.focus();
+      }
+    }
+  }, [sheetId, sheetData]);
 
   // Handle loading state
   if (!sheetData) {
@@ -38,13 +50,15 @@ export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
 
   return (
     <div className="flex-1 flex flex-col w-full h-full">
-      <div style={{ flex: 1, width: "100%", height: "100%" }}>
+      <div style={{ flex: 1, width: "100%", height: "100%" }} ref={excalidrawContainerRef}>
         <Excalidraw
           initialData={initialData as any}
           onChange={(elements: any, appState: any) => {
             onElementsChange(elements, appState);
           }}
           theme="dark"
+          langCode="en"
+          renderAction="force"
         />
       </div>
       <SaveIndicator />
