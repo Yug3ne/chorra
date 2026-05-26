@@ -15,13 +15,14 @@ A modern, cloud-backed digital whiteboard application built with **Excalidraw**,
 - **Auto-Save** - Debounced syncing to cloud (1000ms delay)
 - **Full Excalidraw** - All drawing, shape, and text tools
 - **Dark Mode** - Beautiful dark theme by default
+- **User Accounts** - Secure email/password authentication with Better Auth
+- **Private Sheets** - Each user has their own isolated sheets
 - **Keyboard Shortcuts**:
   - `Cmd/Ctrl + N` - Create new sheet
   - `Cmd/Ctrl + K` - Open sheet switcher with fuzzy search
   - `Escape` - Close sheet switcher
 - **Responsive UI** - Built with shadcn/ui components
 - **Cloud Backend** - Powered by Convex for real-time data
-- **Single User** - Perfect for personal note-taking and sketching
 
 ---
 
@@ -185,9 +186,10 @@ pnpm run deploy
 - [x] Dark mode UI
 - [x] Keyboard shortcuts
 
-### Phase 2: Collaboration
+### Phase 2: Collaboration (✅ Partial)
+- [x] User accounts & authentication
+- [x] Protected sheets & data isolation
 - [ ] Real-time multiplayer editing
-- [ ] User accounts & authentication
 - [ ] Share sheets with others
 - [ ] Permission levels
 

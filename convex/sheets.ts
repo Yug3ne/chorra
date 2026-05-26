@@ -1,13 +1,26 @@
 import { query, mutation } from "./_generated/server";
+import type { QueryCtx, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 
-// Helper: Generate next untitled name
-async function getNextUntitledName(ctx: any): Promise<string> {
-  const sheets = await ctx.db.query("sheets").collect();
+// Helper: Get authenticated user identity
+async function getAuthenticatedUser(ctx: QueryCtx | MutationCtx): Promise<string> {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Unauthorized: user not authenticated");
+  }
+  return identity.tokenIdentifier;
+}
+
+// Helper: Generate next untitled name for user
+async function getNextUntitledName(ctx: QueryCtx | MutationCtx, userId: string): Promise<string> {
+  const sheets = await ctx.db
+    .query("sheets")
+    .withIndex("by_userId", (q) => q.eq("userId", userId))
+    .collect();
   let counter = 0;
   let name = "Untitled";
 
-  while (sheets.some((s: any) => s.title === name)) {
+  while (sheets.some((s) => s.title === name)) {
     counter++;
     name = `Untitled ${counter}`;
   }
@@ -43,14 +56,15 @@ const DEFAULT_TIPS_ELEMENT = {
 };
 
 /**
- * List all sheets sorted by updatedAt (most recent first)
+ * List user's sheets sorted by updatedAt (most recent first)
  */
 export const listSheets = query({
   args: {},
   handler: async (ctx) => {
+    const userId = await getAuthenticatedUser(ctx);
     const sheets = await ctx.db
       .query("sheets")
-      .withIndex("by_updatedAt", (q) => q)
+      .withIndex("by_userId_and_updatedAt", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
 
@@ -69,9 +83,15 @@ export const listSheets = query({
 export const getSheet = query({
   args: { sheetId: v.id("sheets") },
   handler: async (ctx, args) => {
+    const userId = await getAuthenticatedUser(ctx);
     const sheet = await ctx.db.get("sheets", args.sheetId);
     if (!sheet) {
       throw new Error("Sheet not found");
+    }
+
+    // Verify ownership
+    if (sheet.userId !== userId) {
+      throw new Error("Unauthorized: you do not own this sheet");
     }
 
     return {
@@ -91,7 +111,8 @@ export const getSheet = query({
 export const createSheet = mutation({
   args: {},
   handler: async (ctx) => {
-    const title = await getNextUntitledName(ctx);
+    const userId = await getAuthenticatedUser(ctx);
+    const title = await getNextUntitledName(ctx, userId);
     const now = Date.now();
 
     // Default elements with tips
@@ -100,6 +121,7 @@ export const createSheet = mutation({
     // Create sheet record in database
     const sheetId = await ctx.db.insert("sheets", {
       title,
+      userId,
       elements: defaultElements,
       appState: {
         zoom: { value: 1 },
@@ -127,9 +149,15 @@ export const updateSheet = mutation({
     appState: v.any(),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthenticatedUser(ctx);
     const sheet = await ctx.db.get("sheets", args.sheetId);
     if (!sheet) {
       throw new Error("Sheet not found");
+    }
+
+    // Verify ownership
+    if (sheet.userId !== userId) {
+      throw new Error("Unauthorized: you do not own this sheet");
     }
 
     // Update sheet with new elements and appState
@@ -154,9 +182,15 @@ export const renameSheet = mutation({
     newTitle: v.string(),
   },
   handler: async (ctx, args) => {
+    const userId = await getAuthenticatedUser(ctx);
     const sheet = await ctx.db.get("sheets", args.sheetId);
     if (!sheet) {
       throw new Error("Sheet not found");
+    }
+
+    // Verify ownership
+    if (sheet.userId !== userId) {
+      throw new Error("Unauthorized: you do not own this sheet");
     }
 
     await ctx.db.patch("sheets", args.sheetId, {
@@ -172,14 +206,20 @@ export const renameSheet = mutation({
 });
 
 /**
- * Delete a sheet (including its file storage)
+ * Delete a sheet
  */
 export const deleteSheet = mutation({
   args: { sheetId: v.id("sheets") },
   handler: async (ctx, args) => {
+    const userId = await getAuthenticatedUser(ctx);
     const sheet = await ctx.db.get("sheets", args.sheetId);
     if (!sheet) {
       throw new Error("Sheet not found");
+    }
+
+    // Verify ownership
+    if (sheet.userId !== userId) {
+      throw new Error("Unauthorized: you do not own this sheet");
     }
 
     // Delete from database

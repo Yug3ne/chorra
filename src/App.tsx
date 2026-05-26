@@ -1,32 +1,31 @@
-import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { MainLayout } from "./components/layout/MainLayout";
 import { SheetSwitcher } from "./components/SheetSwitcher";
 import { useKeyboardShortcuts } from "./lib/hooks/useKeyboardShortcuts";
 import { ThemeProvider } from "./components/theme-provider";
-
-const convex = new ConvexReactClient(
-  import.meta.env.VITE_CONVEX_URL || "http://localhost:3210"
-);
+import { ConvexClientProvider } from "./components/ConvexClientProvider";
+import { AuthGuard } from "./components/AuthGuard";
 
 const AppContent = () => {
   useKeyboardShortcuts();
 
   return (
-    <TooltipProvider>
-      <MainLayout />
-      <SheetSwitcher />
-    </TooltipProvider>
+    <AuthGuard>
+      <TooltipProvider>
+        <MainLayout />
+        <SheetSwitcher />
+      </TooltipProvider>
+    </AuthGuard>
   );
 };
 
 const App = () => {
   return (
-    <ConvexProvider client={convex}>
+    <ConvexClientProvider>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <AppContent />
       </ThemeProvider>
-    </ConvexProvider>
+    </ConvexClientProvider>
   );
 };
 

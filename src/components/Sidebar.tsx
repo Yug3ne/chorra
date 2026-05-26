@@ -3,10 +3,11 @@ import { useWhiteboardStore } from "../store/whiteboard";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { Trash2, Plus, ChevronLeft, ChevronRight, Edit2, Check, X } from "lucide-react";
+import { Trash2, Plus, ChevronLeft, ChevronRight, Edit2, Check, X, LogOut } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import { useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
+import { authClient } from "../lib/auth-client";
 
 export const Sidebar = () => {
   const {
@@ -32,6 +33,14 @@ export const Sidebar = () => {
   const createSheetMutation = useMutation(api.sheets.createSheet);
   const deleteSheetMutation = useMutation(api.sheets.deleteSheet);
   const renameSheetMutation = useMutation(api.sheets.renameSheet);
+
+  // Fetch current user
+  const user = useQuery(api.auth.getCurrentUser);
+
+  const handleLogout = async () => {
+    await authClient.signOut();
+    window.location.reload();
+  };
 
   // Update store when sheets data changes
   useEffect(() => {
@@ -276,8 +285,34 @@ export const Sidebar = () => {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-2 border-t border-sidebar-border">
-        <ModeToggle />
+      <div className="p-2 border-t border-sidebar-border space-y-2">
+        {sidebarOpen && user && (
+          <div className="text-xs px-2 py-1 rounded bg-sidebar-accent/50">
+            <div className="font-medium text-sidebar-foreground truncate">{user.name || "User"}</div>
+            <div className="text-sidebar-foreground/60 truncate">{user.email}</div>
+          </div>
+        )}
+        <div className={`flex gap-2 ${sidebarOpen ? "" : "flex-col"}`}>
+          <ModeToggle />
+          {sidebarOpen && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-3 h-3" />
+                  <span className="ml-1">Sign Out</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="text-xs">
+                Sign out
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </div>
 
       {/* Resize handle */}
