@@ -5,19 +5,37 @@ import { useSheetSync } from "../../lib/hooks/useSheetSync";
 import { SaveIndicator } from "../SaveIndicator";
 import { Loader2 } from "lucide-react";
 import { useRef, useEffect } from "react";
+import type { ExcalidrawElement, ExcalidrawAppState } from "../../types/excalidraw";
 
 interface CanvasWrapperProps {
   sheetId: string;
+}
+
+interface SheetResult {
+  elements: unknown[];
+  appState: unknown;
+}
+
+function buildInitialData(sheetData: SheetResult) {
+  return {
+    elements: (sheetData.elements ?? []) as ExcalidrawElement[],
+    appState: ({
+      zoom: { value: 1 },
+      scrollX: 0,
+      scrollY: 0,
+      ...(typeof sheetData.appState === "object" && sheetData.appState !== null
+        ? (sheetData.appState as Record<string, unknown>)
+        : {}),
+    }) as ExcalidrawAppState,
+  };
 }
 
 export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
   const sheetData = useQuery(api.sheets.getSheet, { sheetId: sheetId as any });
   const excalidrawContainerRef = useRef<HTMLDivElement>(null);
 
-  // Use the sync hook to handle debounced saves
   const { onElementsChange } = useSheetSync(sheetId);
 
-  // Focus on Excalidraw when container mounts or sheetId changes
   useEffect(() => {
     if (excalidrawContainerRef.current) {
       const excalidrawCanvas = excalidrawContainerRef.current.querySelector("canvas");
@@ -27,7 +45,6 @@ export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
     }
   }, [sheetId, sheetData]);
 
-  // Handle loading state
   if (!sheetData) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
@@ -39,22 +56,15 @@ export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
     );
   }
 
-  const initialData = {
-    elements: (sheetData.elements || []) as any[],
-    appState: (sheetData.appState || {
-      zoom: { value: 1 },
-      scrollX: 0,
-      scrollY: 0,
-    }) as any,
-  };
+  const initialData = buildInitialData(sheetData as SheetResult);
 
   return (
     <div className="flex-1 flex flex-col w-full h-full">
       <div style={{ flex: 1, width: "100%", height: "100%" }} ref={excalidrawContainerRef}>
         <Excalidraw
           initialData={initialData as any}
-          onChange={(elements: any, appState: any) => {
-            onElementsChange(elements, appState);
+          onChange={(elements, appState) => {
+            onElementsChange(elements as unknown as ExcalidrawElement[], appState as unknown as ExcalidrawAppState);
           }}
           theme="dark"
         />
