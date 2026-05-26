@@ -4,9 +4,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return proto === Object.prototype || proto === null;
 }
 
-export function sanitizeForConvex(value: unknown): unknown {
+export function sanitizeForConvex<T>(value: T): T {
   if (value === null || value === undefined) {
-    return null;
+    return value;
   }
 
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
@@ -18,19 +18,19 @@ export function sanitizeForConvex(value: unknown): unknown {
     for (const [key, val] of value) {
       obj[String(key)] = sanitizeForConvex(val);
     }
-    return obj;
+    return obj as T;
   }
 
   if (value instanceof Set) {
-    return Array.from(value).map(sanitizeForConvex);
+    return Array.from(value).map(sanitizeForConvex) as T;
   }
 
   if (value instanceof Date) {
-    return value.getTime();
+    return value.getTime() as T;
   }
 
   if (Array.isArray(value)) {
-    return value.map(sanitizeForConvex);
+    return value.map(sanitizeForConvex) as T;
   }
 
   if (isPlainObject(value)) {
@@ -38,8 +38,8 @@ export function sanitizeForConvex(value: unknown): unknown {
     for (const key of Object.keys(value)) {
       obj[key] = sanitizeForConvex(value[key]);
     }
-    return obj;
+    return obj as T;
   }
 
-  return null;
+  return null as T;
 }

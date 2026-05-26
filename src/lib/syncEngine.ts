@@ -1,4 +1,9 @@
-export type SaveData = { elements: unknown[]; appState: unknown };
+import type { ExcalidrawElement, ExcalidrawAppState } from "../types/excalidraw";
+
+export type SaveData = {
+  elements: ExcalidrawElement[];
+  appState: ExcalidrawAppState;
+};
 
 type SaveFunction = (data: SaveData) => Promise<void>;
 
@@ -17,7 +22,7 @@ export class SyncEngine {
     this.debounceMs = options?.debounceMs ?? 1000;
   }
 
-  onCanvasChange(elements: unknown[], appState: unknown) {
+  onCanvasChange(elements: ExcalidrawElement[], appState: ExcalidrawAppState) {
     this.pendingSaveData = { elements, appState };
 
     if (this.debounceTimer) {
