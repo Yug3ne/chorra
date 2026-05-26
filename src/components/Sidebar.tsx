@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Trash2, Plus, ChevronLeft, ChevronRight, Edit2, Check, X } from "lucide-react";
+import { ModeToggle } from "./mode-toggle";
 import { useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 
@@ -139,6 +140,9 @@ export const Sidebar = () => {
           </TooltipTrigger>
           <TooltipContent side="right">Expand sidebar</TooltipContent>
         </Tooltip>
+        <div className="mt-auto">
+          <ModeToggle />
+        </div>
       </div>
     );
   }
@@ -270,6 +274,11 @@ export const Sidebar = () => {
           </div>
         )}
       </ScrollArea>
+
+      {/* Footer */}
+      <div className="p-2 border-t border-sidebar-border">
+        <ModeToggle />
+      </div>
 
       {/* Resize handle */}
       <div

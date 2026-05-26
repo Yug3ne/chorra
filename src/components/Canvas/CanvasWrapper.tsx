@@ -4,7 +4,8 @@ import { Excalidraw } from "@excalidraw/excalidraw";
 import { useSheetSync } from "../../lib/hooks/useSheetSync";
 import { SaveIndicator } from "../SaveIndicator";
 import { Loader2 } from "lucide-react";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
+import { useTheme } from "../theme-provider";
 import type { ExcalidrawElement, ExcalidrawAppState } from "../../types/excalidraw";
 
 interface CanvasWrapperProps {
@@ -33,6 +34,14 @@ function buildInitialData(sheetData: SheetResult) {
 export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
   const sheetData = useQuery(api.sheets.getSheet, { sheetId: sheetId as any });
   const excalidrawContainerRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
+
+  const resolvedTheme = useMemo(() => {
+    if (theme === "system") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return theme;
+  }, [theme]);
 
   const { onElementsChange } = useSheetSync(sheetId);
 
@@ -66,7 +75,7 @@ export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
           onChange={(elements, appState) => {
             onElementsChange(elements as unknown as ExcalidrawElement[], appState as unknown as ExcalidrawAppState);
           }}
-          theme="dark"
+          theme={resolvedTheme}
         />
       </div>
       <SaveIndicator />

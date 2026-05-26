@@ -3,21 +3,13 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { MainLayout } from "./components/layout/MainLayout";
 import { SheetSwitcher } from "./components/SheetSwitcher";
 import { useKeyboardShortcuts } from "./lib/hooks/useKeyboardShortcuts";
-import { useEffect } from "react";
+import { ThemeProvider } from "./components/theme-provider";
 
 const convex = new ConvexReactClient(
   import.meta.env.VITE_CONVEX_URL || "http://localhost:3210"
 );
 
 const AppContent = () => {
-  // Set dark mode by default
-  useEffect(() => {
-    const html = document.documentElement;
-    if (!html.classList.contains("dark")) {
-      html.classList.add("dark");
-    }
-  }, []);
-
   useKeyboardShortcuts();
 
   return (
@@ -31,7 +23,9 @@ const AppContent = () => {
 const App = () => {
   return (
     <ConvexProvider client={convex}>
-      <AppContent />
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <AppContent />
+      </ThemeProvider>
     </ConvexProvider>
   );
 };
