@@ -1,4 +1,5 @@
-import { useQuery } from "convex/react";
+import { useQuery } from "@tanstack/react-query";
+import { convexQuery } from "@convex-dev/react-query";
 import { api } from "../../../convex/_generated/api";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import { useSheetSync } from "../../lib/hooks/useSheetSync";
@@ -32,7 +33,9 @@ function buildInitialData(sheetData: SheetResult) {
 }
 
 export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
-  const sheetData = useQuery(api.sheets.getSheet, { sheetId: sheetId as any });
+  const { data: sheetData, isPending } = useQuery(
+    convexQuery(api.sheets.getSheet, { sheetId: sheetId as any })
+  );
   const excalidrawContainerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
@@ -54,7 +57,7 @@ export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
     }
   }, [sheetId, sheetData]);
 
-  if (!sheetData) {
+  if (isPending || !sheetData) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
         <div className="text-center">

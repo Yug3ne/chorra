@@ -1,13 +1,15 @@
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { convexQuery } from "@convex-dev/react-query";
+import { useConvexMutation } from "@convex-dev/react-query";
 import { useWhiteboardStore } from "../store/whiteboard";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Trash2, Plus, ChevronLeft, ChevronRight, Edit2, Check, X, LogOut } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
-import { authClient } from "../lib/auth-client";
+import { useAuth } from "../lib/hooks/useAuth";
 
 export const Sidebar = () => {
   const {
@@ -28,18 +30,36 @@ export const Sidebar = () => {
 
   const [renamingValue, setRenamingValue] = useState("");
 
-  // Fetch sheets from Convex
-  const sheetsData = useQuery(api.sheets.listSheets);
-  const createSheetMutation = useMutation(api.sheets.createSheet);
-  const deleteSheetMutation = useMutation(api.sheets.deleteSheet);
-  const renameSheetMutation = useMutation(api.sheets.renameSheet);
+  // Fetch sheets from Convex using TanStack Query
+  const { data: sheetsData } = useQuery(
+    convexQuery(api.sheets.listSheets, {})
+  );
 
-  // Fetch current user
-  const user = useQuery(api.auth.getCurrentUser);
+  // Fetch current user using useAuth hook
+  const { user, signOutAsync } = useAuth();
+
+  // Create sheet mutation
+  const createSheetMutation = useMutation({
+    mutationFn: useConvexMutation(api.sheets.createSheet),
+  });
+
+  // Delete sheet mutation
+  const deleteSheetMutation = useMutation({
+    mutationFn: useConvexMutation(api.sheets.deleteSheet),
+  });
+
+  // Rename sheet mutation
+  const renameSheetMutation = useMutation({
+    mutationFn: useConvexMutation(api.sheets.renameSheet),
+  });
 
   const handleLogout = async () => {
-    await authClient.signOut();
-    window.location.reload();
+    try {
+      await signOutAsync();
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to sign out:", error);
+    }
   };
 
   // Update store when sheets data changes
@@ -58,7 +78,7 @@ export const Sidebar = () => {
 
   const handleCreateSheet = async () => {
     try {
-      const newSheet = await createSheetMutation();
+      const newSheet = await createSheetMutation.mutateAsync({});
       addSheet({
         id: newSheet.id,
         title: newSheet.title,
@@ -77,7 +97,7 @@ export const Sidebar = () => {
   ) => {
     e.stopPropagation();
     try {
-      await deleteSheetMutation({ sheetId: sheetId as any });
+      await deleteSheetMutation.mutateAsync({ sheetId: sheetId as any });
       removeSheet(sheetId);
     } catch (error) {
       console.error("Failed to delete sheet:", error);
@@ -96,7 +116,7 @@ export const Sidebar = () => {
   const handleRenameEnd = async (sheetId: string, newTitle: string) => {
     if (newTitle.trim() && newTitle !== sheets.find((s) => s.id === sheetId)?.title) {
       try {
-        await renameSheetMutation({
+        await renameSheetMutation.mutateAsync({
           sheetId: sheetId as any,
           newTitle: newTitle.trim(),
         });
@@ -122,18 +142,20 @@ export const Sidebar = () => {
     }
   };
 
-  const formatLastUpdated = (timestamp: number): string => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+  const formatLastUpdated = useMemo(() => {
+    return (timestamp: number): string => {
+      const now = Date.now();
+      const diff = now - timestamp;
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
-  };
+      if (minutes < 1) return "Just now";
+      if (minutes < 60) return `${minutes}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      return `${days}d ago`;
+    };
+  }, []);
 
   if (!sidebarOpen) {
     return (

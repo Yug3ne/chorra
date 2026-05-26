@@ -1,11 +1,14 @@
-import { useQuery } from "convex/react";
+import { useQuery } from "@tanstack/react-query";
+import { convexQuery } from "@convex-dev/react-query";
 import { api } from "../../convex/_generated/api";
 import { Login } from "./auth/Login";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const user = useQuery(api.auth.getCurrentUser);
+  const { data: user, isPending } = useQuery(
+    convexQuery(api.auth.getCurrentUser, {})
+  );
 
-  if (user === undefined) {
+  if (isPending) {
     return (
       <div className="w-full h-screen flex items-center justify-center">
         <div className="text-center">
