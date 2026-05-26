@@ -57,8 +57,6 @@ export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
             onElementsChange(elements, appState);
           }}
           theme="dark"
-          langCode="en"
-          renderAction="force"
         />
       </div>
       <SaveIndicator />
