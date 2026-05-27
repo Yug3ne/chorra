@@ -43,3 +43,25 @@ export function sanitizeForConvex<T>(value: T): T {
 
   return null as T;
 }
+
+/**
+ * Extract only the allowed appState fields that Convex validator accepts
+ * Convex schema only allows: scrollX, scrollY, zoom
+ */
+export function filterAppStateForConvex(
+  appState: unknown
+): { scrollX: number; scrollY: number; zoom: { value: number } } {
+  if (!isPlainObject(appState)) {
+    return { scrollX: 0, scrollY: 0, zoom: { value: 1 } };
+  }
+
+  const scrollX = typeof appState.scrollX === "number" ? appState.scrollX : 0;
+  const scrollY = typeof appState.scrollY === "number" ? appState.scrollY : 0;
+  
+  let zoom = { value: 1 };
+  if (isPlainObject(appState.zoom) && typeof appState.zoom.value === "number") {
+    zoom = { value: appState.zoom.value };
+  }
+
+  return { scrollX, scrollY, zoom };
+}

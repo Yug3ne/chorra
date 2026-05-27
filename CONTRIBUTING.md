@@ -186,11 +186,24 @@ Final touches:
 - Project documentation
 - Roadmap
 
-### Phase 2: Collaboration (Future)
-- Real-time multiplayer editing
-- User accounts & authentication
-- Share sheets with others
-- Permission levels
+### Milestone 8: User Authentication ✅
+**Branch**: `feature/user-auth`
+
+User accounts & authentication:
+- Better Auth integration with Convex
+- Email/password authentication
+- User session management
+- Protected routes with AuthGuard
+- Login/Signup UI components
+- User-scoped sheet data (sheets table has userId)
+- Protected mutations with ownership verification
+- Per-user sheet filtering in queries
+
+### Phase 2: Collaboration (Partial)
+- ✅ User accounts & authentication
+- [ ] Real-time multiplayer editing
+- [ ] Share sheets with others
+- [ ] Permission levels
 
 ### Phase 3: Advanced Features (Future)
 - Image uploads

@@ -1,12 +1,13 @@
-import { useQuery, useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useWhiteboardStore } from "../store/whiteboard";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { Trash2, Plus, ChevronLeft, ChevronRight, Edit2, Check, X } from "lucide-react";
+import { Trash2, Plus, ChevronLeft, ChevronRight, Edit2, Check, X, LogOut } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { api } from "../../convex/_generated/api";
+import { useAuth } from "../lib/hooks/useAuth";
 
 export const Sidebar = () => {
   const {
@@ -27,11 +28,29 @@ export const Sidebar = () => {
 
   const [renamingValue, setRenamingValue] = useState("");
 
-  // Fetch sheets from Convex
-  const sheetsData = useQuery(api.sheets.listSheets);
+  // Fetch sheets from Convex using TanStack Query
+  const sheetsData = useQuery(api.sheets.listSheets, {});
+
+  // Fetch current user using useAuth hook
+  const { user, signOutAsync } = useAuth();
+
+  // Create sheet mutation
   const createSheetMutation = useMutation(api.sheets.createSheet);
+
+  // Delete sheet mutation
   const deleteSheetMutation = useMutation(api.sheets.deleteSheet);
+
+  // Rename sheet mutation
   const renameSheetMutation = useMutation(api.sheets.renameSheet);
+
+  const handleLogout = async () => {
+    try {
+      await signOutAsync();
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to sign out:", error);
+    }
+  };
 
   // Update store when sheets data changes
   useEffect(() => {
@@ -49,7 +68,7 @@ export const Sidebar = () => {
 
   const handleCreateSheet = async () => {
     try {
-      const newSheet = await createSheetMutation();
+      const newSheet = await createSheetMutation({});
       addSheet({
         id: newSheet.id,
         title: newSheet.title,
@@ -113,18 +132,20 @@ export const Sidebar = () => {
     }
   };
 
-  const formatLastUpdated = (timestamp: number): string => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+  const formatLastUpdated = useMemo(() => {
+    return (timestamp: number): string => {
+      const now = Date.now();
+      const diff = now - timestamp;
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
-  };
+      if (minutes < 1) return "Just now";
+      if (minutes < 60) return `${minutes}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      return `${days}d ago`;
+    };
+  }, []);
 
   if (!sidebarOpen) {
     return (
@@ -216,58 +237,58 @@ export const Sidebar = () => {
                   </div>
                 ) : (
                   // Normal mode
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => setActiveSheet(sheet.id)}
-                        className={`w-full text-left px-3 py-2 rounded-md transition-all flex items-center justify-between group ${
-                          activeSheetId === sheet.id
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                            : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                        }`}
-                      >
+                  <div
+                    onClick={() => setActiveSheet(sheet.id)}
+                    className={`w-full text-left px-3 py-2 rounded-md transition-all flex items-center justify-between group cursor-pointer ${
+                      activeSheetId === sheet.id
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                        : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
+                    }`}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{sheet.title}</p>
                           <p className="text-xs text-sidebar-foreground/60">
                             {formatLastUpdated(sheet.updatedAt)}
                           </p>
                         </div>
-                        <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={(e) => handleRenameStart(e, sheet.id)}
-                                className="text-sidebar-foreground/40 hover:text-primary p-1 rounded hover:bg-primary/10 transition-colors"
-                                title="Rename sheet"
-                              >
-                                <Edit2 size={14} />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="text-xs">
-                              Rename sheet (or double-click)
-                            </TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={(e) => handleDeleteSheet(e, sheet.id)}
-                                className="text-sidebar-foreground/40 hover:text-destructive p-1 rounded hover:bg-destructive/10 transition-colors"
-                                title="Delete sheet"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="text-xs">
-                              Delete sheet
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      {sheet.title}
-                    </TooltipContent>
-                  </Tooltip>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        {sheet.title}
+                      </TooltipContent>
+                    </Tooltip>
+                    <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={(e) => handleRenameStart(e, sheet.id)}
+                            className="text-sidebar-foreground/40 hover:text-primary p-1 rounded hover:bg-primary/10 transition-colors"
+                            title="Rename sheet"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="text-xs">
+                          Rename sheet (or double-click)
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={(e) => handleDeleteSheet(e, sheet.id)}
+                            className="text-sidebar-foreground/40 hover:text-destructive p-1 rounded hover:bg-destructive/10 transition-colors"
+                            title="Delete sheet"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="text-xs">
+                          Delete sheet
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
                 )}
               </div>
             ))}
@@ -276,8 +297,34 @@ export const Sidebar = () => {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-2 border-t border-sidebar-border">
-        <ModeToggle />
+      <div className="p-2 border-t border-sidebar-border space-y-2">
+        {sidebarOpen && user && (
+          <div className="text-xs px-2 py-1 rounded bg-sidebar-accent/50">
+            <div className="font-medium text-sidebar-foreground truncate">{user.name || "User"}</div>
+            <div className="text-sidebar-foreground/60 truncate">{user.email}</div>
+          </div>
+        )}
+        <div className={`flex gap-2 ${sidebarOpen ? "" : "flex-col"}`}>
+          <ModeToggle />
+          {sidebarOpen && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-3 h-3" />
+                  <span className="ml-1">Sign Out</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="text-xs">
+                Sign out
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </div>
       </div>
 
       {/* Resize handle */}

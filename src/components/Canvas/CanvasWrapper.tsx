@@ -33,6 +33,7 @@ function buildInitialData(sheetData: SheetResult) {
 
 export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
   const sheetData = useQuery(api.sheets.getSheet, { sheetId: sheetId as any });
+  const isPending = sheetData === undefined;
   const excalidrawContainerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
@@ -54,7 +55,7 @@ export const CanvasWrapper = ({ sheetId }: CanvasWrapperProps) => {
     }
   }, [sheetId, sheetData]);
 
-  if (!sheetData) {
+  if (isPending || !sheetData) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
         <div className="text-center">
