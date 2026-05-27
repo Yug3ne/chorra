@@ -1,32 +1,37 @@
-import { TooltipProvider } from "./components/ui/tooltip";
-import { MainLayout } from "./components/layout/MainLayout";
-import { SheetSwitcher } from "./components/SheetSwitcher";
-import { useKeyboardShortcuts } from "./lib/hooks/useKeyboardShortcuts";
-import { ThemeProvider } from "./components/theme-provider";
-import { ConvexClientProvider } from "./components/ConvexClientProvider";
-import { AuthGuard } from "./components/AuthGuard";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 
-const AppContent = () => {
-  useKeyboardShortcuts();
+import { AuthLayout } from "@/layouts/auth-layout";
+import { AppLayout } from "@/layouts/app-layout";
+import { IndexRoute } from "./routes/index";
+import { AuthRoute } from "./routes/auth";
+import { SignInForm } from "@/components/auth/signin-form";
+import { SignUpForm } from "@/components/auth/signup-form";
 
-  return (
-    <AuthGuard>
-      <TooltipProvider>
-        <MainLayout />
-        <SheetSwitcher />
-      </TooltipProvider>
-    </AuthGuard>
-  );
-};
+const router = createBrowserRouter([
+	{
+		element: <IndexRoute />,
+		children: [
+			{ index: true, element: <AppLayout /> },
+		],
+	},
+	{
+		path: "auth",
+		element: <AuthRoute />,
+		children: [
+			{
+				element: <AuthLayout />,
+				children: [
+					{ index: true, element: <SignInForm /> },
+					{ path: "signup", element: <SignUpForm /> },
+				],
+			},
+		],
+	},
+	{ path: "*", element: <Navigate to="/" replace /> },
+]);
 
-const App = () => {
-  return (
-    <ConvexClientProvider>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <AppContent />
-      </ThemeProvider>
-    </ConvexClientProvider>
-  );
-};
-
-export default App;
+export default function App() {
+	return (
+		<RouterProvider router={router} />
+	);
+}

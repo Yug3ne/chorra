@@ -1,98 +1,88 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { convexQuery } from "@convex-dev/react-query";
+import { useQuery } from "convex/react";
+import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import { authClient } from "@/lib/auth-client";
 
 export function useAuth() {
-  const queryClient = useQueryClient();
+  const user = useQuery(api.auth.getCurrentUser, {});
+  const [authError, setAuthError] = useState<Error | null>(null);
 
-  // Get current user using TanStack Query with Convex
-  const { data: user, isPending: isLoadingUser, error: userError } = useQuery(
-    convexQuery(api.auth.getCurrentUser, {})
-  );
-
-  // Sign up mutation
-  const signUpMutation = useMutation({
-    mutationFn: async ({
-      email,
-      password,
-      name,
-    }: {
-      email: string;
-      password: string;
-      name: string;
-    }) => {
+  const signUp = async ({
+    email,
+    password,
+    name,
+  }: {
+    email: string;
+    password: string;
+    name: string;
+  }) => {
+    try {
+      setAuthError(null);
       return await authClient.signUp.email({
         email,
         password,
         name,
       });
-    },
-    onSuccess: () => {
-      // Invalidate the user query to refetch
-      queryClient.invalidateQueries(
-        convexQuery(api.auth.getCurrentUser, {})
-      );
-    },
-  });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error("An error occurred");
+      setAuthError(err);
+      throw err;
+    }
+  };
 
-  // Sign in mutation
-  const signInMutation = useMutation({
-    mutationFn: async ({
-      email,
-      password,
-    }: {
-      email: string;
-      password: string;
-    }) => {
+  const signIn = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
+    try {
+      setAuthError(null);
       return await authClient.signIn.email({
         email,
         password,
       });
-    },
-    onSuccess: () => {
-      // Invalidate the user query to refetch
-      queryClient.invalidateQueries(
-        convexQuery(api.auth.getCurrentUser, {})
-      );
-    },
-  });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error("An error occurred");
+      setAuthError(err);
+      throw err;
+    }
+  };
 
-  // Sign out mutation
-  const signOutMutation = useMutation({
-    mutationFn: async () => {
+  const signOut = async () => {
+    try {
+      setAuthError(null);
       await authClient.signOut();
-    },
-    onSuccess: () => {
-      // Invalidate the user query
-      queryClient.invalidateQueries(
-        convexQuery(api.auth.getCurrentUser, {})
-      );
-    },
-  });
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error("An error occurred");
+      setAuthError(err);
+      throw err;
+    }
+  };
 
   return {
     // User data
     user,
-    isLoadingUser,
-    userError,
+    isLoadingUser: user === undefined,
+    userError: authError,
 
     // Sign up
-    signUp: signUpMutation.mutate,
-    signUpAsync: signUpMutation.mutateAsync,
-    isSigningUp: signUpMutation.isPending,
-    signUpError: signUpMutation.error,
+    signUp,
+    signUpAsync: signUp,
+    isSigningUp: false,
+    signUpError: authError,
 
     // Sign in
-    signIn: signInMutation.mutate,
-    signInAsync: signInMutation.mutateAsync,
-    isSigningIn: signInMutation.isPending,
-    signInError: signInMutation.error,
+    signIn,
+    signInAsync: signIn,
+    isSigningIn: false,
+    signInError: authError,
 
     // Sign out
-    signOut: signOutMutation.mutate,
-    signOutAsync: signOutMutation.mutateAsync,
-    isSigningOut: signOutMutation.isPending,
-    signOutError: signOutMutation.error,
+    signOut,
+    signOutAsync: signOut,
+    isSigningOut: false,
+    signOutError: authError,
   };
 }

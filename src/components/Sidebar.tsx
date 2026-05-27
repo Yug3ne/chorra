@@ -1,6 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { convexQuery } from "@convex-dev/react-query";
-import { useConvexMutation } from "@convex-dev/react-query";
+import { useMutation, useQuery } from "convex/react";
 import { useWhiteboardStore } from "../store/whiteboard";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
@@ -31,27 +29,19 @@ export const Sidebar = () => {
   const [renamingValue, setRenamingValue] = useState("");
 
   // Fetch sheets from Convex using TanStack Query
-  const { data: sheetsData } = useQuery(
-    convexQuery(api.sheets.listSheets, {})
-  );
+  const sheetsData = useQuery(api.sheets.listSheets, {});
 
   // Fetch current user using useAuth hook
   const { user, signOutAsync } = useAuth();
 
   // Create sheet mutation
-  const createSheetMutation = useMutation({
-    mutationFn: useConvexMutation(api.sheets.createSheet),
-  });
+  const createSheetMutation = useMutation(api.sheets.createSheet);
 
   // Delete sheet mutation
-  const deleteSheetMutation = useMutation({
-    mutationFn: useConvexMutation(api.sheets.deleteSheet),
-  });
+  const deleteSheetMutation = useMutation(api.sheets.deleteSheet);
 
   // Rename sheet mutation
-  const renameSheetMutation = useMutation({
-    mutationFn: useConvexMutation(api.sheets.renameSheet),
-  });
+  const renameSheetMutation = useMutation(api.sheets.renameSheet);
 
   const handleLogout = async () => {
     try {
@@ -78,7 +68,7 @@ export const Sidebar = () => {
 
   const handleCreateSheet = async () => {
     try {
-      const newSheet = await createSheetMutation.mutateAsync({});
+      const newSheet = await createSheetMutation({});
       addSheet({
         id: newSheet.id,
         title: newSheet.title,
@@ -97,7 +87,7 @@ export const Sidebar = () => {
   ) => {
     e.stopPropagation();
     try {
-      await deleteSheetMutation.mutateAsync({ sheetId: sheetId as any });
+      await deleteSheetMutation({ sheetId: sheetId as any });
       removeSheet(sheetId);
     } catch (error) {
       console.error("Failed to delete sheet:", error);
@@ -116,7 +106,7 @@ export const Sidebar = () => {
   const handleRenameEnd = async (sheetId: string, newTitle: string) => {
     if (newTitle.trim() && newTitle !== sheets.find((s) => s.id === sheetId)?.title) {
       try {
-        await renameSheetMutation.mutateAsync({
+        await renameSheetMutation({
           sheetId: sheetId as any,
           newTitle: newTitle.trim(),
         });
